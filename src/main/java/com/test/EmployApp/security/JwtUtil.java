@@ -6,9 +6,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.test.EmployApp.entity.AppUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -29,15 +29,15 @@ public class JwtUtil {
     @Value("${app.jwtExpirationInSecond}")
     private long jwtExpirationInSecond;
 
-    public String generateToken(AppUser appUser) {
+    public String generateToken(Authentication appUser) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes(StandardCharsets.UTF_8));
             return JWT.create()
                     .withIssuer(appName)
-                    .withSubject(appUser.getId())
+                    .withSubject(appUser.getName())
                     .withExpiresAt(Instant.now().plusSeconds(jwtExpirationInSecond))
                     .withIssuedAt(Instant.now())
-                    .withClaim("role", appUser.getRole().name())
+                    .withClaim("role", appUser.getName())
                     .sign(algorithm);
         } catch (JWTCreationException e) {
             log.error("Error while creating JWT token: {}", e.getMessage());

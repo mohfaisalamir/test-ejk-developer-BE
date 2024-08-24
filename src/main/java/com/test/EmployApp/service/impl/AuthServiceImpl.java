@@ -3,6 +3,7 @@ package com.test.EmployApp.service.impl;
 import com.test.EmployApp.dto.request.AuthRequest;
 import com.test.EmployApp.dto.response.LoginResponse;
 import com.test.EmployApp.dto.response.RegisterResponse;
+import com.test.EmployApp.entity.AppUser;
 import com.test.EmployApp.repository.UserCredentialRepository;
 import com.test.EmployApp.security.JwtUtil;
 import com.test.EmployApp.service.AuthService;
@@ -12,6 +13,9 @@ import com.test.EmployApp.service.UserService;
 import com.test.EmployApp.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +44,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(AuthRequest request) {
-        return null;
+        // Autentikasi pengguna menggunakan AuthenticationManager
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+
+        // Set autentikasi ke SecurityContextHolder
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Hasilkan token JWT menggunakan JwtUtil
+        String jwt = jwtUtil.generateToken(authentication);
+
+        // Kembalikan token sebagai bagian dari LoginResponse
+        return LoginResponse.builder()
+                .token(jwt)
+                .userName(request.getUsername())
+                .build();
     }
+
 }
